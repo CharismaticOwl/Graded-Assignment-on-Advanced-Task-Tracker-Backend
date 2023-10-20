@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import hashlib
 from pymongo import MongoClient
 
@@ -16,20 +16,20 @@ def hello():
 def register():
     name = request.form.get('name')
     email = request.form.get('email')
-
+    user_id = request.form.get('user_id')
     password = request.form.get('password')
 
     password = hashlib.sha256(password.encode()).hexdigest()
 
     x = db.user.find_one({
-        "name": name,
-        "email": email
+        "user_id": user_id
     })
 
     if (x):
-        return "User already registered!"
+        return "User already registered! Please check with Administrator."
     else:
         db.user.insert_one({
+            "user_id": user_id,
             "name":name,
             "email": email,
             "password": password
@@ -37,11 +37,22 @@ def register():
 
         return "User has been successfully registered"
     
+@app.route('/login', methods=['POST'])
+def login():
+    user_id = request.form.get('user_id')
+    password = request.form.get('password')
+    hash_password = hashlib.sha256(password.encode()).hexdigest()
 
-# @app.route('/login', methods=['POST'])
-# def user_login():
+    x = db.user.find_one({
+        "user_id" : user_id,
+        "password": hash_password
+    })
 
-#     return "work in progress. (User login page)"
+    if (x):
+        return "Login successful"
+    else:
+        return "Logon Failed"
+    
 
 # @app.route('/tasks', methods=['POST'])
 # def task_creation():
